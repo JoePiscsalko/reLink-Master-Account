@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FAF7F1; font-family:'Source Sans 3', Arial, sans-serif; color:#4A3E3A; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#D46A1E; text-decoration:none; }
+  a:hover { color:#F38637; text-decoration:underline; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:#E4DED0; border-radius:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:#FAF7F1;">
+
+  <div style="background:#2E2622; color:#FAF7F1; padding:28px 36px 0;">
+    <div style="max-width:1600px; margin:0 auto;">
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-end; justify-content:space-between;">
+        <div>
+          <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#F38637; margin-bottom:10px;">reLink360® program audit</div>
+          <h1 style="margin:0; font-size:40px; font-weight:200; line-height:1.05; letter-spacing:-0.01em; color:#FAF7F1;">Account master — <span style="font-weight:700;">parent, child &amp; escrow</span></h1>
+          <p style="margin:10px 0 0; font-size:14px; color:#B9AEA6; max-width:640px; text-wrap:pretty;">One consolidated view of every 360 and transactional account under a health-system parent — escrow budget by GL line, coverage roles, open third-party stock, and contract status.</p>
+        </div>
+        <div style="text-align:right; font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8B7F78; line-height:1.7; padding-bottom:4px;">
+          <div>AS OF 2026-09-14</div>
+          <div>SOURCE · SALESFORCE EXPORTS</div>
+          <div style="margin-top:6px;"><a href="report.html" style="color:#F38637;">PRINTABLE REPORT →</a></div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:2px; margin-top:28px; flex-wrap:wrap;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1600px; margin:0 auto; padding:0 36px 80px;">
+
+    <div style="display:flex; flex-wrap:wrap; gap:1px; background:#E4DED0; border:1px solid #E4DED0; margin-top:28px;">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
+        <div style="background:#FFFFFF; padding:18px 20px 20px; flex:1 1 200px; min-width:0;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.11em; text-transform:uppercase; color:#6B615C; margin-bottom:10px;">{{ k.label }}</div>
+          <div style="font-size:30px; font-weight:200; letter-spacing:-0.02em; line-height:1; color:#2E2622;">{{ k.value }}</div>
+          <div style="font-size:12px; color:#6B615C; margin-top:7px;">{{ k.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isSystems }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:26px 0 14px;">
+          <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search health system or account…" style="flex:1 1 280px; min-width:0; padding:10px 14px; font-family:'Source Sans 3',Arial,sans-serif; font-size:14px; color:#2E2622; background:#FFFFFF; border:1px solid #E4DED0; outline:none;" />
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.go }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+          <button onClick="{{ toggleZero }}" style="{{ zeroStyle }}">{{ zeroLabel }}</button>
+          <button onClick="{{ toggleAll }}" style="padding:9px 14px; font-family:'Source Sans 3',Arial,sans-serif; font-size:12px; font-weight:600; color:#4A3E3A; background:#FFFFFF; border:1px solid #E4DED0; cursor:pointer; white-space:nowrap;">{{ expandLabel }}</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:#6B615C; margin-bottom:10px;">
+          <div>{{ resultLine }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;">SORT · NET ESCROW DESC</div>
+        </div>
+
+        <div style="border:1px solid #E4DED0; background:#FFFFFF; overflow-x:auto;">
+          <div style="min-width:1700px;">
+          <div style="display:grid; grid-template-columns:minmax(230px,2fr) 70px 66px 66px 70px minmax(128px,1fr) minmax(128px,1fr) minmax(140px,1.05fr) minmax(150px,1.1fr) 112px 80px 116px 112px; gap:0; padding:11px 16px; background:#EFE9DA; border-bottom:1px solid #E4DED0; font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#4A3E3A;">
+            <div>Health system · ultimate parent</div>
+            <div style="text-align:center;">Accts</div>
+            <div style="text-align:center;">360 cur</div>
+            <div style="text-align:center;">360 tgt</div>
+            <div style="text-align:center;">Trans</div>
+            <div>Acquisition</div>
+            <div>Sell-to</div>
+            <div style="color:#036E78;">Auth. redeemer</div>
+            <div style="color:#036E78;">360 disp. champion</div>
+            <div style="text-align:center;">Contract</div>
+            <div style="text-align:center; color:#036E78;">Open TPS</div>
+            <div style="text-align:right; color:#6E8A36;">2026 budget</div>
+            <div style="text-align:right;">Net escrow</div>
+          </div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="12">
+            <div style="{{ r.wrapStyle }}">{{ r.node }}</div>
+          </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px; color:#6B615C; margin-top:12px;">{{ pageNote }}</div>
+        <div style="margin-top:12px;">
+          <button onClick="{{ more }}" style="{{ moreStyle }}">{{ moreLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isContracts }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:28px; align-items:start;">
+          <div>
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#D46A1E; margin-bottom:8px;">Action required</div>
+            <h2 style="margin:0 0 6px; font-size:24px; font-weight:600; color:#2E2622;">Health systems operating without a signed 360 agreement</h2>
+            <p style="margin:0 0 20px; font-size:14px; color:#6B615C; max-width:640px; text-wrap:pretty;">These partners run on letters of understanding, email confirmations, or verbal agreements. Each row shows the escrow exposure sitting behind the missing paper.</p>
+            <div style="border:1px solid #E4DED0; background:#FFFFFF; overflow-x:auto;">
+              <div style="min-width:560px;">
+              <div style="display:grid; grid-template-columns:minmax(220px,2fr) 90px 100px 130px; padding:11px 16px; background:#EFE9DA; border-bottom:1px solid #E4DED0; font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#4A3E3A;">
+                <div>Health system</div>
+                <div style="text-align:center;">Accounts</div>
+                <div style="text-align:center;">360 current</div>
+                <div style="text-align:right;">Net escrow</div>
+              </div>
+              <sc-for list="{{ contractRows }}" as="c" hint-placeholder-count="20">
+                <div style="display:grid; grid-template-columns:minmax(220px,2fr) 90px 100px 130px; padding:12px 16px; border-bottom:1px solid #F2EEE5; font-size:14px; align-items:center;">
+                  <div style="color:#2E2622; font-weight:600;">{{ c.name }}</div>
+                  <div style="text-align:center; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#6B615C;">{{ c.n }}</div>
+                  <div style="text-align:center; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#6B615C;">{{ c.cur }}</div>
+                  <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:{{ c.color }}; font-weight:500;">{{ c.total }}</div>
+                </div>
+              </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="background:#2E2622; color:#FAF7F1; padding:26px 26px 28px;">
+            <div style="font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#F38637; margin-bottom:14px;">Exposure summary</div>
+            <div style="font-size:52px; font-weight:200; line-height:1; letter-spacing:-0.02em;">{{ ncCount }}</div>
+            <div style="font-size:14px; color:#B9AEA6; margin-top:6px; margin-bottom:24px;">health systems without a formal contract</div>
+            <div style="height:1px; background:#4A3E3A; margin-bottom:22px;"></div>
+            <div style="display:grid; gap:18px;">
+              <div>
+                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#8B7F78; margin-bottom:5px;">Accounts affected</div>
+                <div style="font-size:24px; font-weight:300; font-family:'IBM Plex Mono',monospace;">{{ ncAccounts }}</div>
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#8B7F78; margin-bottom:5px;">Combined net escrow</div>
+                <div style="font-size:24px; font-weight:300; font-family:'IBM Plex Mono',monospace; color:#90AD51;">{{ ncEscrow }}</div>
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#8B7F78; margin-bottom:5px;">Named on source list</div>
+                <div style="font-size:24px; font-weight:300; font-family:'IBM Plex Mono',monospace;">22</div>
+              </div>
+            </div>
+            <div style="height:1px; background:#4A3E3A; margin:22px 0;"></div>
+            <p style="margin:0; font-size:13px; line-height:1.6; color:#B9AEA6; text-wrap:pretty;">One entry on the source list — U.S. Materials Management — did not match a health-system parent in the account hierarchy. It appears in the escrow report as a standalone account with no ultimate parent.</p>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTps }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#036E78; margin-bottom:8px;">Third party stock · open pipeline</div>
+        <h2 style="margin:0 0 6px; font-size:24px; font-weight:600; color:#2E2622;">Open TPS records, year to date</h2>
+        <p style="margin:0 0 18px; font-size:14px; color:#6B615C; max-width:760px; text-wrap:pretty;">87 of 1,367 YTD records remain open — New, Info Request, In Market, Pending Offer, On Hold, or Pending Sale. All 39 open 360 Current records now carry their child account and roll up to 29 health systems. The remaining 48 — transactional and 360 target — are still awaiting an account column in their source export.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+          <sc-for list="{{ tpsFilters }}" as="f" hint-placeholder-count="5">
+            <button onClick="{{ f.go }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="border:1px solid #E4DED0; background:#FFFFFF; overflow-x:auto;">
+          <div style="min-width:1080px;">
+            <div style="display:grid; grid-template-columns:110px 86px 100px minmax(190px,1.5fr) minmax(190px,1.5fr) 120px 110px 56px 92px; padding:11px 16px; background:#EFE9DA; border-bottom:1px solid #E4DED0; font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#4A3E3A;">
+              <div>TPS #</div>
+              <div>Created</div>
+              <div>Acct status</div>
+              <div style="color:#036E78;">Child account</div>
+              <div>Material</div>
+              <div>Modality</div>
+              <div>Owner</div>
+              <div style="text-align:right;">Qty</div>
+              <div style="text-align:right;">Value</div>
+            </div>
+            <sc-for list="{{ tpsRows }}" as="t" hint-placeholder-count="14">
+              <div style="display:grid; grid-template-columns:110px 86px 100px minmax(190px,1.5fr) minmax(190px,1.5fr) 120px 110px 56px 92px; padding:11px 16px; border-bottom:1px solid #F2EEE5; font-size:13px; align-items:center;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2E2622;">{{ t.id }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6B615C;">{{ t.created }}</div>
+                <div><span style="{{ t.statusStyle }}">{{ t.acctStatus }}</span></div>
+                <div style="{{ t.acctStyle }}" title="{{ t.parent }}">{{ t.account }}</div>
+                <div style="color:#4A3E3A; padding-right:14px;">{{ t.material }}</div>
+                <div style="color:#6B615C; font-size:12px;">{{ t.modality }}</div>
+                <div style="color:#6B615C; font-size:12px;">{{ t.owner }}</div>
+                <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#4A3E3A;">{{ t.qty }}</div>
+                <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2E2622;">{{ t.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px; color:#6B615C; margin-top:12px;">{{ tpsNote }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRoles }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6E8A36; margin-bottom:8px;">Coverage audit</div>
+        <h2 style="margin:0 0 6px; font-size:24px; font-weight:600; color:#2E2622;">Who owns each health system</h2>
+        <p style="margin:0 0 14px; font-size:14px; color:#6B615C; max-width:760px; text-wrap:pretty;">Acquisition coordinator and sell-to coordinator by health system, drawn from the account hierarchy export. Systems where every account falls to the shared reLink Mgt queue have no named owner and are flagged.</p>
+        <div style="background:#DDF0F2; border-left:3px solid #0598A6; padding:14px 18px; margin-bottom:20px; max-width:860px;">
+          <div style="font-size:13px; font-weight:600; color:#036E78; margin-bottom:4px;">Customer-side roles are live</div>
+          <p style="margin:0; font-size:13px; line-height:1.6; color:#4A3E3A; text-wrap:pretty;">Authorized redeemer and 360 disposition champion come from the contact roles export — 294 redeemers and 182 champions across 279 accounts, with “no longer there” contacts excluded. Names shown are rolled up to the health system; hover any name to see the contact’s title and the specific child account they sit on. Expand a system in the health-systems table to see roles at account level.</p>
+        </div>
+        <div style="border:1px solid #E4DED0; background:#FFFFFF; overflow-x:auto;">
+          <div style="min-width:1300px;">
+          <div style="display:grid; grid-template-columns:minmax(200px,1.7fr) minmax(130px,1fr) minmax(130px,1fr) minmax(140px,1.05fr) minmax(150px,1.1fr) 84px 112px 104px; padding:11px 16px; background:#EFE9DA; border-bottom:1px solid #E4DED0; font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#4A3E3A;">
+            <div>Health system</div>
+            <div>Acquisition coordinator</div>
+            <div>Sell-to coordinator</div>
+            <div style="color:#036E78;">Authorized redeemer</div>
+            <div style="color:#036E78;">360 disposition champion</div>
+            <div style="text-align:center;">Consign %</div>
+            <div style="text-align:right; color:#6E8A36;">2026 budget</div>
+            <div style="text-align:right;">Net escrow</div>
+          </div>
+          <sc-for list="{{ roleRows }}" as="r" hint-placeholder-count="16">
+            <div style="display:grid; grid-template-columns:minmax(200px,1.7fr) minmax(130px,1fr) minmax(130px,1fr) minmax(140px,1.05fr) minmax(150px,1.1fr) 84px 112px 104px; padding:12px 16px; border-bottom:1px solid #F2EEE5; font-size:13px; align-items:center;">
+              <div style="color:#2E2622; font-weight:600; font-size:14px; padding-right:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.name }}</div>
+              <div style="{{ r.acqStyle }}">{{ r.acq }}</div>
+              <div style="{{ r.sellStyle }}">{{ r.sell }}</div>
+              <div style="{{ r.redeemerStyle }}">{{ r.redeemer }}</div>
+              <div style="{{ r.championStyle }}">{{ r.champion }}</div>
+              <div style="text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6B615C;">{{ r.cons }}</div>
+              <div style="{{ r.budgetStyle }}">{{ r.budget }}</div>
+              <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#4A3E3A;">{{ r.total }}</div>
+            </div>
+          </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px; color:#6B615C; margin-top:12px;">{{ roleNote }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isGaps }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px; max-width:900px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#D46A1E; margin-bottom:8px;">Before this becomes the system of record</div>
+        <h2 style="margin:0 0 20px; font-size:24px; font-weight:600; color:#2E2622;">Data gaps and how the master file was assembled</h2>
+
+        <div style="display:grid; gap:1px; background:#E4DED0; border:1px solid #E4DED0; margin-bottom:34px;">
+          <div style="background:#FFFFFF; padding:22px 24px;">
+            <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:6px;">Two role vocabularies, deliberately kept apart</div>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#6B615C; text-wrap:pretty;">Acquisition coordinator and sell-to coordinator are internal reLink owners, from the account hierarchy export. Authorized redeemer and 360 disposition champion are customer-side contacts, from the contact roles export — the champion is stored in Salesforce as <span style="font-family:'IBM Plex Mono',monospace; font-size:13px;">360 Program Champion</span>, mapped here to the disposition champion column. Contacts flagged “no longer there” were dropped. Four contact accounts — CME, Unity Health, BioMedovation and VHC Health — did not match an account in the hierarchy and carry no roll-up.</p>
+          </div>
+          <div style="background:#FFFFFF; padding:22px 24px;">
+            <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:6px;">Open TPS is linked for 360 Current only</div>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#6B615C; text-wrap:pretty;">Three TPS exports have been merged — 1,367 YTD records, 87 of them open. Account names were supplied for the 360 Current slice, so all 39 of those open records now nest under their child account and roll up to 29 health systems. The other 48 open records — 36 transactional, 6 360 target, 6 unclassified — still carry only <span style="font-family:'IBM Plex Mono',monospace; font-size:13px;">Queue TPS Seller Account Status</span>, a status value rather than a join key. Adding the <span style="font-family:'IBM Plex Mono',monospace; font-size:13px;">Seller Account</span> lookup to that export closes the remainder.</p>
+          </div>
+          <div style="background:#FFFFFF; padding:22px 24px;">
+            <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:6px;">Escrow covers 360 partners only</div>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#6B615C; text-wrap:pretty;">The escrow report is filtered to <span style="font-family:'IBM Plex Mono',monospace; font-size:13px;">reLink 360 Partner = True</span>, so 1,319 accounts carry GL detail. The 5,511 transactional accounts under those same parents are all present in the hierarchy but show no escrow line — that is a filter boundary, not missing money.</p>
+          </div>
+          <div style="background:#FFFFFF; padding:22px 24px;">
+            <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:6px;">2026 annual budget is a tracker figure, not a Salesforce field</div>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#6B615C; text-wrap:pretty;">Budgets come from the 2026 Annual Budget column of the Master Tracker workbook, read across its all-accounts, net-new and strategic sheets — 406 rows collapsing to 168 distinct accounts worth $19.5M. The same account is often spelled differently sheet to sheet (Jefferson Health / Jefferson; Lurie Childrens / Laurie Childrens), so rows are deduplicated on a normalized key and the highest figure taken, never summed. 154 accounts matched a health system in the hierarchy, totalling $18.2M; the remaining 14 are net-new prospects with no Salesforce account yet, worth $1.31M — among them Premier, MultiCare, McClaren, Maimonides, Dayton Childrens and Lurie Childrens. Where a parent legitimately carries several distinct tracker lines they are summed: GE HealthCare rolls up five, Kaiser Permanente two regions.</p>
+          </div>
+          <div style="background:#FFFFFF; padding:22px 24px;">
+            <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:6px;">What was excluded, and what reconciles</div>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#6B615C; text-wrap:pretty;">Every account that rolls up to an ultimate parent is included — 360 current, 360 target and transactional alike. Dropped from the master: eBay, Shopify, Proxibid and auction-channel buyer records (sales channels, not health systems, carrying no escrow), and roughly 55,000 one-off individual buyer accounts with no parent and no escrow. Net escrow ties to the source report exactly at $3,715,618.</p>
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#036E78; margin-bottom:14px;">Source files</div>
+        <div style="border:1px solid #E4DED0; background:#FFFFFF; margin-bottom:34px;">
+          <sc-for list="{{ sources }}" as="s" hint-placeholder-count="4">
+            <div style="display:grid; grid-template-columns:minmax(0,1.6fr) 110px minmax(0,1.4fr); gap:16px; padding:14px 18px; border-bottom:1px solid #F2EEE5; font-size:13px; align-items:center;">
+              <div style="color:#2E2622; font-weight:600;">{{ s.name }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6B615C;">{{ s.rows }}</div>
+              <div style="color:#6B615C; font-size:13px;">{{ s.use }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#EFE9DA; padding:24px 26px; border-left:3px solid #F38637;">
+          <div style="font-size:16px; font-weight:600; color:#2E2622; margin-bottom:8px;">Join logic</div>
+          <p style="margin:0; font-size:14px; line-height:1.65; color:#4A3E3A; text-wrap:pretty;">Accounts are keyed on Salesforce account name. All 1,319 escrow child accounts matched the hierarchy export exactly — no fuzzy matching was needed. Where the escrow report assigns an ultimate parent and the hierarchy export leaves it blank, the escrow parent wins. Contract-gap names were matched on a normalized form that strips parenthetical abbreviations.</p>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="margin-top:56px; padding-top:18px; border-top:1px solid #E4DED0; font-size:11px; line-height:1.7; color:#6B615C; text-wrap:pretty;">
+      Confidential — internal use only. reLink Medical®, reLink360®, and reLink Ready® are registered trademarks of reLink Medical LLC. reLink Logistics™, reLink Online™, reLink Storage™, and reLink Intelligence™ are trademarks of reLink Medical LLC. All other marks are the property of their respective owners.
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Health systems&quot;,&quot;Coverage &amp; roles&quot;,&quot;Open TPS&quot;,&quot;Contract gap&quot;,&quot;Method &amp; gaps&quot;],&quot;default&quot;:&quot;Health systems&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;rowsPerPage&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;min&quot;:10,&quot;max&quot;:300,&quot;step&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;showZeroAccounts&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Defaults&quot;}}">
+const MONO = "'IBM Plex Mono', monospace";
+const OPEN_ORDER = ['New','Info Request','In Market','Pending Offer','Pending Sale','On Hold'];
+
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    const map = {'Health systems':'systems','Coverage & roles':'roles','Open TPS':'tps','Contract gap':'contracts','Method & gaps':'gaps'};
+    this.state = { tab: map[p.initialTab] || 'systems', q:'', filter:'all',
+      showZero: p.showZeroAccounts ?? true, open:{}, limit: p.rowsPerPage ?? 40,
+      tpsFilter:'all', allOpen:false, data:null, tps:null, contacts:{}, budgets:{byParent:{}}, err:null };
+  }
+
+  componentDidMount(){
+    Promise.all([
+      fetch('data/master.json').then(r=>r.json()),
+      fetch('data/tps.json').then(r=>r.json()),
+      fetch('data/roles-contacts.json').then(r=>r.json()).catch(()=>({byParent:{},byAccount:{}})),
+      fetch('data/budgets.json').then(r=>r.json()).catch(()=>({byParent:{}}))
+    ]).then(([data,tps,rc,bg])=>this.setState({data,tps,contacts:rc||{byParent:{},byAccount:{}},budgets:bg||{byParent:{}}}))
+      .catch(e=>this.setState({err:String(e)}));
+  }
+
+  money(v){
+    if(v===0||v===undefined||v===null) return '—';
+    const n = Math.round(Math.abs(v));
+    const s = n.toLocaleString('en-US');
+    return (v<0?'−$':'$') + s;
+  }
+  moneyK(v){
+    const a = Math.abs(v);
+    if(a>=1e6) return (v<0?'−$':'$') + (a/1e6).toFixed(1) + 'M';
+    if(a>=1e3) return (v<0?'−$':'$') + Math.round(a/1e3).toLocaleString('en-US') + 'K';
+    return this.money(v);
+  }
+
+  tabBtn(id,label){
+    const on = this.state.tab===id;
+    return { label, go:()=>this.setState({tab:id, limit:(this.props.rowsPerPage ?? 40)}),
+      style:`padding:11px 18px; font-family:'Source Sans 3',Arial,sans-serif; font-size:13px; font-weight:${on?700:500}; letter-spacing:0.01em; color:${on?'#2E2622':'#B9AEA6'}; background:${on?'#FAF7F1':'transparent'}; border:none; border-bottom:2px solid ${on?'#F38637':'transparent'}; cursor:pointer;` };
+  }
+  chip(label,active,go,color){
+    const c = color||'#F38637';
+    return { label, go, style:`padding:9px 14px; font-family:'Source Sans 3',Arial,sans-serif; font-size:12px; font-weight:600; color:${active?'#FFFFFF':'#4A3E3A'}; background:${active?c:'#FFFFFF'}; border:1px solid ${active?c:'#E4DED0'}; cursor:pointer; white-space:nowrap;` };
+  }
+  statusPill(s){
+    const map = { '360 Current':['#DDF0F2','#036E78'], '360 Target':['#EDF2DE','#6E8A36'], 'Transactional':['#EFE9DA','#6B615C'] };
+    const [bg,fg] = map[s] || ['#F2EEE5','#8B7F78'];
+    return `display:inline-block; padding:3px 8px; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:${fg}; background:${bg}; white-space:nowrap;`;
+  }
+
+  tpsFor(parent){
+    const t = ((this.state.tps||{}).byParent||{})[parent];
+    return t || null;
+  }
+  tpsCell(parent){
+    const t = this.tpsFor(parent);
+    return React.createElement('div',{key:'tps',
+      title: t? `${t.n} open record${t.n===1?'':'s'} · ${t.qty.toLocaleString('en-US')} units` : '',
+      style:{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:t?'#036E78':'#C4BAB2',fontWeight:t?500:400}},
+      t? String(t.n) : '—');
+  }
+
+  budgetFor(parent){
+    const b = ((this.state.budgets||{}).byParent||{})[parent];
+    return b ? b.budget : 0;
+  }
+  budgetCell(parent){
+    const b = this.budgetFor(parent);
+    return React.createElement('div',{key:'bud',style:{textAlign:'right',fontFamily:MONO,fontSize:'13px',
+      color: b?'#6E8A36':'#C4BAB2', fontWeight: b?500:400}}, b? this.moneyK(b) : '—');
+  }
+
+  contactFor(parent,key){
+    const c = ((this.state.contacts||{}).byParent||{})[parent];
+    const list = (c && c[key]) || [];
+    if(!list.length) return '';
+    return list[0].name + (list.length>1 ? ` +${list.length-1}` : '');
+  }
+  acctContact(acct,key){
+    const c = ((this.state.contacts||{}).byAccount||{})[acct];
+    const list = (c && c[key]) || [];
+    if(!list.length) return '';
+    return list[0].name + (list.length>1 ? ` +${list.length-1}` : '');
+  }
+  roleCell(parent,key){
+    const c = ((this.state.contacts||{}).byParent||{})[parent];
+    const list = (c && c[key]) || [];
+    const v = this.contactFor(parent,key);
+    return React.createElement('div',{key:key,
+      title: list.map(x=>`${x.name}${x.title?' — '+x.title:''}${x.account?' · '+x.account:''}`).join('\n'),
+      style:{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingRight:'12px',
+      fontSize:'12.5px', color: v?'#036E78':'#C4BAB2', fontWeight: v?500:400, fontStyle: v?'normal':'italic'}},
+      v || 'Not on file');
+  }
+
+  filtered(){
+    const d = this.state.data; if(!d) return [];
+    const q = this.state.q.trim().toLowerCase();
+    const f = this.state.filter;
+    return d.systems.filter(s=>{
+      if(f==='360' && s.cur===0) return false;
+      if(f==='nocontract' && !s.noContract) return false;
+      if(f==='unowned' && (s.owners.length>0)) return false;
+      if(f==='escrow' && s.total===0) return false;
+      if(f==='budget' && !this.budgetFor(s.parent)) return false;
+      if(f==='opentps' && !this.tpsFor(s.parent)) return false;
+      if(f==='noredeemer'){
+        const bp=((this.state.contacts||{}).byParent||{})[s.parent];
+        if(s.cur===0) return false;
+        if(bp && bp.redeemer && bp.redeemer.length) return false;
+      }
+      if(!q) return true;
+      if(s.parent.toLowerCase().includes(q)) return true;
+      return s.kids.some(k=>k.name.toLowerCase().includes(q));
+    });
+  }
+
+  systemNode(s){
+    const R = React.createElement;
+    const open = this.state.allOpen || !!this.state.open[s.parent];
+    const q = this.state.q.trim().toLowerCase();
+    let kids = s.kids;
+    if(!this.state.showZero) kids = kids.filter(k=>k.total!==0 || /^360/.test(k.status));
+    if(q && !s.parent.toLowerCase().includes(q)) kids = kids.filter(k=>k.name.toLowerCase().includes(q));
+    const hidden = s.kids.length - kids.length;
+
+    const cell = (txt,st)=>R('div',{style:st},txt);
+    const head = R('div',{
+      onClick:()=>this.setState(p=>({open:{...p.open,[s.parent]: !(p.allOpen || p.open[s.parent])}, allOpen:false})),
+      style:{display:'grid', gridTemplateColumns:'minmax(230px,2fr) 70px 66px 66px 70px minmax(128px,1fr) minmax(128px,1fr) minmax(140px,1.05fr) minmax(150px,1.1fr) 112px 80px 116px 112px', padding:'13px 16px', cursor:'pointer', alignItems:'center', background: open?'#FBF9F4':'#FFFFFF', borderBottom:'1px solid #F2EEE5'}
+    },[
+      R('div',{key:'n',style:{display:'flex',alignItems:'center',gap:'9px',paddingRight:'14px',minWidth:0}},[
+        R('span',{key:'c',style:{color:'#B9AEA6',fontSize:'10px',lineHeight:1,transform:open?'rotate(90deg)':'none',transition:'transform .12s',display:'inline-block'}},'▶'),
+        R('span',{key:'t',style:{fontSize:'14px',fontWeight:600,color:'#2E2622',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.parent)
+      ]),
+      cell(s.n,{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:'#4A3E3A'}),
+      cell(s.cur||'—',{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:s.cur?'#036E78':'#C4BAB2',fontWeight:s.cur?500:400}),
+      cell(s.tgt||'—',{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:s.tgt?'#6E8A36':'#C4BAB2'}),
+      cell(s.tx||'—',{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:s.tx?'#6B615C':'#C4BAB2'}),
+      cell(s.acqs.length? s.acqs.slice(0,1).join('') + (s.acqs.length>1?` +${s.acqs.length-1}`:'') : 'reLink Mgt queue',
+        {fontSize:'12.5px',color:s.acqs.length?'#4A3E3A':'#B9AEA6',fontStyle:s.acqs.length?'normal':'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingRight:'12px'}),
+      cell(s.owners.length? s.owners.slice(0,1).join('') + (s.owners.length>1?` +${s.owners.length-1}`:'') : 'reLink Mgt queue',
+        {fontSize:'12.5px',color:s.owners.length?'#4A3E3A':'#B9AEA6',fontStyle:s.owners.length?'normal':'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingRight:'12px'}),
+      this.roleCell(s.parent,'redeemer'),
+      this.roleCell(s.parent,'champion'),
+      R('div',{key:'ct',style:{textAlign:'center'}}, s.noContract
+        ? R('span',{style:{display:'inline-block',padding:'3px 9px',fontSize:'10px',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',color:'#FFFFFF',background:'#D46A1E'}},'Needs signing')
+        : (s.cur===0 && s.tgt===0)
+          ? R('span',{style:{fontSize:'11px',color:'#B9AEA6',fontStyle:'italic'}},'N/A')
+          : R('span',{style:{fontSize:'12px',color:'#C4BAB2'}},'On file')),
+      this.tpsCell(s.parent),
+      this.budgetCell(s.parent),
+      cell(this.moneyK(s.total),{textAlign:'right',fontFamily:MONO,fontSize:'13.5px',fontWeight:500,color:s.total>0?'#2E2622':(s.total<0?'#D46A1E':'#C4BAB2')})
+    ]);
+
+    if(!open) return head;
+
+    const glIdx = (this.state.data.gl||[]).map((g,i)=>i).filter(i=>s.vals[i]!==0);
+    const glStrip = glIdx.length ? R('div',{key:'gl',style:{display:'flex',flexWrap:'wrap',gap:'1px',background:'#E4DED0',margin:'0 0 14px'}},
+      glIdx.map(i=>R('div',{key:i,style:{background:'#FFFFFF',padding:'9px 12px',minWidth:'150px',flex:'1 1 150px'}},[
+        R('div',{key:'l',style:{fontSize:'9.5px',fontWeight:700,letterSpacing:'0.07em',textTransform:'uppercase',color:'#8B7F78',marginBottom:'4px'}}, this.state.data.gl[i].replace(/^360 /,'')),
+        R('div',{key:'v',style:{fontFamily:MONO,fontSize:'13px',color:s.vals[i]<0?'#D46A1E':'#2E2622'}}, this.money(s.vals[i]))
+      ]))) : null;
+
+    const KG = 'minmax(210px,2fr) 100px minmax(120px,1fr) minmax(120px,1fr) minmax(130px,1fr) minmax(140px,1fr) 64px 114px';
+    const kidHead = R('div',{key:'kh',style:{display:'grid',gridTemplateColumns:KG,padding:'8px 14px',background:'#EFE9DA',fontSize:'9.5px',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',color:'#6B615C'}},[
+      R('div',{key:1},'Child account'),R('div',{key:2},'Status'),R('div',{key:3},'Acquisition'),R('div',{key:4},'Sell-to'),
+      R('div',{key:7,style:{color:'#036E78'}},'Auth. redeemer'),R('div',{key:8,style:{color:'#036E78'}},'360 disp. champion'),
+      R('div',{key:5,style:{textAlign:'center'}},'Cons'),R('div',{key:6,style:{textAlign:'right'}},'Net escrow')
+    ]);
+
+    const roleTd=(acct,key)=>{
+      const v=this.acctContact(acct,key);
+      return R('div',{key:key,style:{fontSize:'12px',color:v?'#036E78':'#D6CFC6',fontWeight:v?500:400,fontStyle:v?'normal':'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingRight:'10px'}}, v||'—');
+    };
+
+    const kidRows = kids.map((k,i)=>R('div',{key:k.name+i,style:{display:'grid',gridTemplateColumns:KG,padding:'9px 14px',fontSize:'13px',alignItems:'center',background:'#FFFFFF',borderBottom:'1px solid #F7F4ED'}},[
+      R('div',{key:1,style:{color:'#2E2622',paddingRight:'12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},k.name),
+      R('div',{key:2},R('span',{style:{display:'inline-block',padding:'2px 7px',fontSize:'9.5px',fontWeight:700,letterSpacing:'0.05em',textTransform:'uppercase',
+        color:k.status==='360 Current'?'#036E78':(k.status==='360 Target'?'#6E8A36':'#8B7F78'),
+        background:k.status==='360 Current'?'#DDF0F2':(k.status==='360 Target'?'#EDF2DE':'#F2EEE5')}},k.status)),
+      R('div',{key:3,style:{fontSize:'12px',color:k.acq&&k.acq!=='reLink Mgt'?'#4A3E3A':'#C4BAB2',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},k.acq||'—'),
+      R('div',{key:4,style:{fontSize:'12px',color:k.sell&&k.sell!=='reLink Mgt'?'#4A3E3A':'#C4BAB2',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},k.sell||'—'),
+      roleTd(k.name,'redeemer'),
+      roleTd(k.name,'champion'),
+      R('div',{key:5,style:{textAlign:'center',fontFamily:MONO,fontSize:'11.5px',color:'#8B7F78'}}, k.cons? Math.round(parseFloat(k.cons)*100)+'%':'—'),
+      R('div',{key:6,style:{textAlign:'right',fontFamily:MONO,fontSize:'12.5px',color:k.total>0?'#2E2622':(k.total<0?'#D46A1E':'#C4BAB2')}}, this.money(k.total))
+    ]));
+
+    const note = hidden>0 ? R('div',{key:'hn',style:{padding:'9px 14px',fontSize:'12px',color:'#8B7F78',background:'#FBF9F4'}},
+      `${hidden} account${hidden===1?'':'s'} hidden — zero escrow activity across every GL line.`) : null;
+
+    return R('div',{},[
+      head,
+      R('div',{key:'body',style:{padding:'18px 16px 20px 34px',background:'#FBF9F4',borderBottom:'1px solid #E4DED0'}},[
+        glStrip,
+        R('div',{key:'tbl',style:{border:'1px solid #E4DED0',overflowX:'auto'}},
+        R('div',{style:{minWidth:'1120px'}},[kidHead, ...kidRows, note]))
+      ])
+    ]);
+  }
+
+  renderVals(){
+    const st = this.state, d = st.data;
+    const tabs = [
+      this.tabBtn('systems','Health systems'),
+      this.tabBtn('roles','Coverage & roles'),
+      this.tabBtn('tps','Open TPS'),
+      this.tabBtn('contracts','Contract gap'),
+      this.tabBtn('gaps','Method & gaps')
+    ];
+    const base = { tabs, isSystems:st.tab==='systems', isContracts:st.tab==='contracts', isTps:st.tab==='tps', isRoles:st.tab==='roles', isGaps:st.tab==='gaps' };
+
+    if(!d) return {...base, kpis:[{label:'Loading',value:'—',sub:st.err||'Reading source exports'}],
+      rows:[], contractRows:[], tpsRows:[], tpsFilters:[], roleRows:[], sources:[], filters:[],
+      query:'', onQuery:()=>{}, showZero:false, toggleZero:()=>{}, toggleAll:()=>{}, more:()=>{},
+      zeroLabel:'Show $0 accounts', zeroStyle:this.chip('',false,null).style,
+      expandLabel:'Expand all', resultLine:'Loading source exports…', pageNote:'',
+      moreLabel:'', moreStyle:'display:none;',
+      ncCount:'—', ncAccounts:'—', ncEscrow:'—', tpsNote:'', roleNote:''};
+
+    const S = d.systems;
+    const totalAcc = S.reduce((a,s)=>a+s.n,0);
+    const cur = S.reduce((a,s)=>a+s.cur,0);
+    const tgt = S.reduce((a,s)=>a+s.tgt,0);
+    const net = S.reduce((a,s)=>a+s.total,0);
+    const nc = S.filter(s=>s.noContract);
+    const openTps = (st.tps&&st.tps.open)||[];
+    const bp = (st.contacts&&st.contacts.byParent)||{};
+    const withRedeemer = S.filter(s=>(bp[s.parent]||{}).redeemer && bp[s.parent].redeemer.length).length;
+    const withChampion = S.filter(s=>(bp[s.parent]||{}).champion && bp[s.parent].champion.length).length;
+    const roleGap = S.filter(s=>s.cur>0 && !((bp[s.parent]||{}).redeemer||[]).length).length;
+    const bgp = (st.budgets&&st.budgets.byParent)||{};
+    const budgetCount = S.filter(s=>bgp[s.parent]).length;
+    const budgetTotal = S.reduce((a,s)=>a+(bgp[s.parent]?bgp[s.parent].budget:0),0);
+
+    const kpis = [
+      {label:'Health systems', value:S.length.toLocaleString('en-US'), sub:'ultimate parent accounts'},
+      {label:'Accounts', value:totalAcc.toLocaleString('en-US'), sub:'child + standalone'},
+      {label:'360 current', value:cur.toLocaleString('en-US'), sub:`${tgt.toLocaleString('en-US')} in target status`},
+      {label:'Net escrow', value:this.moneyK(net), sub:'across 18 GL lines'},
+      {label:'Open TPS', value:openTps.length.toLocaleString('en-US'), sub:`${openTps.reduce((a,r)=>a+r.qty,0).toLocaleString('en-US')} units in pipeline`},
+      {label:'Contract gap', value:nc.length.toLocaleString('en-US'), sub:'systems without signed paper'},
+      {label:'Redeemer gap', value:roleGap.toLocaleString('en-US'), sub:'active 360 systems, no named redeemer'},
+      {label:'2026 budget', value:this.moneyK(budgetTotal), sub:`${budgetCount} health systems with a target`}
+    ];
+
+    const list = this.filtered();
+    const shown = list.slice(0, st.limit);
+    const rows = shown.map(s=>({ node:this.systemNode(s), wrapStyle:'' }));
+
+    const filters = [
+      this.chip('All', st.filter==='all', ()=>this.setState({filter:'all',limit:(this.props.rowsPerPage ?? 40)})),
+      this.chip('Has 360 current', st.filter==='360', ()=>this.setState({filter:'360',limit:(this.props.rowsPerPage ?? 40)}), '#0598A6'),
+      this.chip('Escrow activity', st.filter==='escrow', ()=>this.setState({filter:'escrow',limit:(this.props.rowsPerPage ?? 40)}), '#90AD51'),
+      this.chip('No contract', st.filter==='nocontract', ()=>this.setState({filter:'nocontract',limit:(this.props.rowsPerPage ?? 40)}), '#D46A1E'),
+      this.chip('Unowned', st.filter==='unowned', ()=>this.setState({filter:'unowned',limit:(this.props.rowsPerPage ?? 40)}), '#6B615C'),
+      this.chip('No redeemer', st.filter==='noredeemer', ()=>this.setState({filter:'noredeemer',limit:(this.props.rowsPerPage ?? 40)}), '#036E78'),
+      this.chip('Has 2026 budget', st.filter==='budget', ()=>this.setState({filter:'budget',limit:(this.props.rowsPerPage ?? 40)}), '#6E8A36'),
+      this.chip('Open TPS', st.filter==='opentps', ()=>this.setState({filter:'opentps',limit:(this.props.rowsPerPage ?? 40)}), '#0598A6')
+    ];
+
+    // contracts
+    const contractRows = nc.slice().sort((a,b)=>Math.abs(b.total)-Math.abs(a.total)).map(s=>({
+      name:s.parent, n:s.n, cur:s.cur||'—', total:this.moneyK(s.total),
+      color:s.total>0?'#2E2622':(s.total<0?'#D46A1E':'#C4BAB2')
+    }));
+
+    // tps
+    let tl = openTps.slice();
+    if(st.tpsFilter!=='all') tl = tl.filter(r=>r.acctStatus===st.tpsFilter);
+    tl.sort((a,b)=>OPEN_ORDER.indexOf(a.status)-OPEN_ORDER.indexOf(b.status) || b.value-a.value);
+    const tpsCounts = {};
+    openTps.forEach(r=>tpsCounts[r.acctStatus]=(tpsCounts[r.acctStatus]||0)+1);
+    const tpsFilters = [this.chip(`All open · ${openTps.length}`, st.tpsFilter==='all', ()=>this.setState({tpsFilter:'all'}), '#036E78')]
+      .concat(Object.keys(tpsCounts).sort().map(k=>this.chip(`${k} · ${tpsCounts[k]}`, st.tpsFilter===k, ()=>this.setState({tpsFilter:k}), '#036E78')));
+    const tpsRows = tl.map(r=>({
+      id:r.id, created:r.created, acctStatus:r.acctStatus, material:r.material, modality:r.modality||'—',
+      owner:r.owner||'—', qty:r.qty.toLocaleString('en-US'), value:r.value?this.money(r.value):'—',
+      statusStyle:this.statusPill(r.acctStatus),
+      account: r.account || 'Not in source report',
+      parent: r.parent || '',
+      acctStyle: `font-size:12.5px; padding-right:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:${r.account?'#036E78':'#C4BAB2'}; font-weight:${r.account?500:400}; font-style:${r.account?'normal':'italic'};`
+    }));
+
+    // roles
+    const roleRows = S.filter(s=>s.cur>0 || s.total!==0).slice(0,120).map(s=>{
+      const acq = s.acqs.length? s.acqs.slice(0,2).join(', ') : 'reLink Mgt queue';
+      const sell = s.owners.length? s.owners.slice(0,2).join(', ') : 'reLink Mgt queue';
+      const dim = 'font-size:13px; color:#B9AEA6; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;';
+      const lit = 'font-size:13px; color:#4A3E3A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;';
+      const cons = s.cons.length? [...new Set(s.cons.map(c=>Math.round(parseFloat(c)*100)+'%'))].join(' / ') : '—';
+      const pend = 'font-size:13px; color:#C4BAB2; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;';
+      const named = 'font-size:13px; color:#036E78; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;';
+      const rd = this.contactFor(s.parent,'redeemer') || '', ch = this.contactFor(s.parent,'champion') || '';
+      const bud = this.budgetFor(s.parent);
+      return { name:s.parent, acq, sell, cons, total:this.moneyK(s.total),
+        budget: bud? this.moneyK(bud) : '—',
+        budgetStyle: `text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:${bud?'#6E8A36':'#C4BAB2'}; font-weight:${bud?500:400};`,
+        acqStyle:s.acqs.length?lit:dim, sellStyle:s.owners.length?lit:dim,
+        redeemer: rd || 'Not on file', redeemerStyle: rd?named:pend,
+        champion: ch || 'Not on file', championStyle: ch?named:pend };
+    });
+
+    return {
+      ...base, kpis, rows, filters, contractRows, tpsRows, tpsFilters, roleRows,
+      query: st.q,
+      onQuery: e=>this.setState({q:e.target.value, limit:(this.props.rowsPerPage ?? 40)}),
+      showZero: st.showZero,
+      toggleZero: ()=>this.setState(p=>({showZero:!p.showZero})),
+      zeroLabel: st.showZero ? 'Hide $0 accounts' : 'Show $0 accounts',
+      zeroStyle: this.chip('',st.showZero,null,'#6B615C').style,
+      toggleAll: ()=>this.setState(p=>({allOpen:!p.allOpen, open:{}})),
+      expandLabel: st.allOpen ? 'Collapse all' : 'Expand all',
+      resultLine: `${list.length.toLocaleString('en-US')} health system${list.length===1?'':'s'} · ${list.reduce((a,s)=>a+s.n,0).toLocaleString('en-US')} accounts`,
+      pageNote: shown.length < list.length ? `Showing ${shown.length} of ${list.length}.` : `All ${list.length} shown.`,
+      more: ()=>this.setState(p=>({limit:p.limit+(this.props.rowsPerPage ?? 40)})),
+      moreLabel: shown.length < list.length ? `Load ${this.props.rowsPerPage ?? 40} more` : '',
+      moreStyle: shown.length < list.length
+        ? "padding:11px 22px; font-family:'Source Sans 3',Arial,sans-serif; font-size:13px; font-weight:600; color:#FFFFFF; background:#F38637; border:none; cursor:pointer;"
+        : 'display:none;',
+      ncCount: nc.length, ncAccounts: nc.reduce((a,s)=>a+s.n,0).toLocaleString('en-US'), ncEscrow: this.moneyK(nc.reduce((a,s)=>a+s.total,0)),
+      tpsNote: `${tl.length} record${tl.length===1?'':'s'} shown · ${tl.filter(r=>r.account&&r.account!=='Not in source report').length} with a child account. Merged from three YTD exports: 1,367 records, 1,278 closed.`,
+      roleNote: `Top ${roleRows.length} systems by 360 presence and escrow activity. Program-wide, ${withRedeemer} systems have a named authorized redeemer and ${withChampion} have a 360 disposition champion.`,
+      sources: [
+        {name:'Parent Child Escrow Report V2', rows:'1,319 accts', use:'GL budget by line, parent–child hierarchy'},
+        {name:'Accounts with Parent Account', rows:'74,065 rows', use:'Status, coordinators, consignment %'},
+        {name:'Daily OPEN TPS YTD', rows:'1,367 records', use:'Open third-party stock pipeline · 3 exports merged'},
+        {name:'No Active Contract', rows:'22 systems', use:'Contract-gap flag'},
+        {name:'All Contacts with Roles Assigned', rows:'1,777 contacts', use:'Authorized redeemer · 360 disposition champion'},
+        {name:'Master Tracker with Budgets 2026 Final', rows:'168 accounts', use:'2026 annual budget by health system'}
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
