@@ -107,3 +107,15 @@ Behaviour:
 Limits: this is one shared password, not per-user accounts. Anyone with it
 sees everything, and there is no audit trail of who opened what. Rotate it
 when someone leaves.
+
+## Focus accounts
+
+`data/focus.json` flags health systems that appear on the four focus lists
+(Strategic, Ready, Transactional, Net new). Rebuild from the Word docs with:
+
+    python3 build_focus.py /path/to/folder-with-the-docx-files
+
+The lists concatenate the focus label onto the account name
+("SSM Health CareReady"), so the suffix is stripped before matching. Names
+that don't match master.json verbatim are handled by the ALIAS map in the
+script — add to it rather than editing focus.json by hand.

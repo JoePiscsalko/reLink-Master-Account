@@ -357,7 +357,7 @@ class Component extends DCLogic {
     const map = {'Health systems':'systems','Coverage & roles':'roles','Open TPS':'tps','Open REQ':'reqs','Contract gap':'contracts','Method & gaps':'gaps'};
     this.state = { tab: map[p.initialTab] || 'systems', q:'', filter:'all',
       showZero: p.showZeroAccounts ?? true, open:{}, limit: p.rowsPerPage ?? 40,
-      tpsFilter:'all', allOpen:false, data:null, tps:null, reqs:null, reqFilter:'health', reqLimit:40, contacts:{}, budgets:{byParent:{}}, err:null };
+      tpsFilter:'all', allOpen:false, data:null, tps:null, reqs:null, reqFilter:'health', reqLimit:40, focus:null, contacts:{}, budgets:{byParent:{}}, err:null };
   }
 
   componentDidMount(){
@@ -366,8 +366,9 @@ class Component extends DCLogic {
       fetch('data/tps.json').then(r=>r.json()),
       fetch('data/roles-contacts.json').then(r=>r.json()).catch(()=>({byParent:{},byAccount:{}})),
       fetch('data/budgets.json').then(r=>r.json()).catch(()=>({byParent:{}})),
-      fetch('data/reqs.json').then(r=>r.json()).catch(()=>null)
-    ]).then(([data,tps,rc,bg,rq])=>this.setState({data,tps,reqs:rq,contacts:rc||{byParent:{},byAccount:{}},budgets:bg||{byParent:{}}}))
+      fetch('data/reqs.json').then(r=>r.json()).catch(()=>null),
+      fetch('data/focus.json').then(r=>r.json()).catch(()=>null)
+    ]).then(([data,tps,rc,bg,rq,fo])=>this.setState({data,tps,reqs:rq,focus:fo,contacts:rc||{byParent:{},byAccount:{}},budgets:bg||{byParent:{}}}))
       .catch(e=>this.setState({err:String(e)}));
   }
 
@@ -444,6 +445,29 @@ class Component extends DCLogic {
       v || 'Not on file');
   }
 
+  focusTags(parent){
+    const f = this.state.focus; if(!f) return [];
+    return (f.byParent && f.byParent[parent]) || [];
+  }
+  focusTagsForAccount(name){
+    const f = this.state.focus; if(!f) return [];
+    return (f.byAccount && f.byAccount[name]) || [];
+  }
+  focusBadges(keys, size){
+    const f = this.state.focus; if(!f || !keys.length) return null;
+    const R = React.createElement;
+    const order = f.order || Object.keys(f.lists);
+    return R('span',{style:{display:'inline-flex',gap:'4px',flexShrink:0}},
+      order.filter(k=>keys.includes(k)).map(k=>{
+        const L = f.lists[k] || {label:k,color:'#6B615C'};
+        return R('span',{key:k,title:`${L.label} focus account`,style:{
+          fontSize: size==='sm' ? '9px' : '9.5px', fontWeight:700, letterSpacing:'0.06em',
+          textTransform:'uppercase', color:'#FFFFFF', background:L.color,
+          padding: size==='sm' ? '1px 5px' : '2px 6px', borderRadius:'2px', whiteSpace:'nowrap'
+        }}, L.label);
+      }));
+  }
+
   filtered(){
     const d = this.state.data; if(!d) return [];
     const q = this.state.q.trim().toLowerCase();
@@ -451,6 +475,7 @@ class Component extends DCLogic {
     return d.systems.filter(s=>{
       if(f==='360' && s.cur===0) return false;
       if(f==='target' && !(s.tgt>0 && s.cur===0)) return false;
+      if(f==='focus' && !this.focusTags(s.parent).length) return false;
       if(f==='transactional' && !(s.tx>0 && s.cur===0 && s.tgt===0)) return false;
       if(f==='nocontract' && !s.noContract) return false;
       if(f==='unowned' && (s.owners.length>0)) return false;
@@ -484,7 +509,8 @@ class Component extends DCLogic {
     },[
       R('div',{key:'n',style:{display:'flex',alignItems:'center',gap:'9px',paddingRight:'14px',minWidth:0}},[
         R('span',{key:'c',style:{color:'#B9AEA6',fontSize:'10px',lineHeight:1,transform:open?'rotate(90deg)':'none',transition:'transform .12s',display:'inline-block'}},'▶'),
-        R('span',{key:'t',style:{fontSize:'14px',fontWeight:600,color:'#2E2622',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.parent)
+        R('span',{key:'t',style:{fontSize:'14px',fontWeight:600,color:'#2E2622',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.parent),
+        this.focusBadges(this.focusTags(s.parent))
       ]),
       cell(s.n,{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:'#4A3E3A'}),
       cell(s.cur||'—',{textAlign:'center',fontFamily:MONO,fontSize:'13px',color:s.cur?'#036E78':'#C4BAB2',fontWeight:s.cur?500:400}),
@@ -528,7 +554,10 @@ class Component extends DCLogic {
     };
 
     const kidRows = kids.map((k,i)=>R('div',{key:k.name+i,style:{display:'grid',gridTemplateColumns:KG,padding:'9px 14px',fontSize:'13px',alignItems:'center',background:'#FFFFFF',borderBottom:'1px solid #F7F4ED'}},[
-      R('div',{key:1,style:{color:'#2E2622',paddingRight:'12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},k.name),
+      R('div',{key:1,style:{color:'#2E2622',paddingRight:'12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:'7px',minWidth:0}},[
+        R('span',{key:'kn',style:{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},k.name),
+        this.focusBadges(this.focusTagsForAccount(k.name.split(' | ')[0].trim()),'sm')
+      ]),
       R('div',{key:2},R('span',{style:{display:'inline-block',padding:'2px 7px',fontSize:'9.5px',fontWeight:700,letterSpacing:'0.05em',textTransform:'uppercase',
         color:k.status==='360 Current'?'#036E78':(k.status==='360 Target'?'#6E8A36':'#8B7F78'),
         background:k.status==='360 Current'?'#DDF0F2':(k.status==='360 Target'?'#EDF2DE':'#F2EEE5')}},k.status)),
@@ -588,6 +617,12 @@ class Component extends DCLogic {
     const budgetCount = S.filter(s=>bgp[s.parent]).length;
     const budgetTotal = S.reduce((a,s)=>a+(bgp[s.parent]?bgp[s.parent].budget:0),0);
 
+    const fo = st.focus;
+    const focusN = fo ? Object.keys(fo.byParent||{}).length : 0;
+    const focusSub = fo
+      ? (fo.order||[]).map(k=>`${(fo.counts||{})[k]||0} ${(fo.lists[k]||{}).label.toLowerCase()}`).join(' \u00b7 ')
+      : 'list not loaded';
+
     const kpis = [
       {label:'Health systems', value:S.length.toLocaleString('en-US'), sub:'ultimate parent accounts'},
       {label:'Accounts', value:totalAcc.toLocaleString('en-US'), sub:'child + standalone'},
@@ -596,7 +631,8 @@ class Component extends DCLogic {
       {label:'Open TPS', value:openTps.length.toLocaleString('en-US'), sub:`${openTps.reduce((a,r)=>a+r.qty,0).toLocaleString('en-US')} units in pipeline`},
       {label:'Contract gap', value:nc.length.toLocaleString('en-US'), sub:'systems without signed paper'},
       {label:'Redeemer gap', value:roleGap.toLocaleString('en-US'), sub:'active 360 systems, no named redeemer'},
-      {label:'2026 budget', value:this.moneyK(budgetTotal), sub:`${budgetCount} health systems with a target`}
+      {label:'2026 budget', value:this.moneyK(budgetTotal), sub:`${budgetCount} health systems with a target`},
+      {label:'Focus accounts', value:focusN.toLocaleString('en-US'), sub: focusSub}
     ];
 
     const list = this.filtered();
@@ -608,6 +644,7 @@ class Component extends DCLogic {
       this.chip('Has 360 current', st.filter==='360', ()=>this.setState({filter:'360',limit:(this.props.rowsPerPage ?? 40)}), '#0598A6'),
       this.chip('360 target', st.filter==='target', ()=>this.setState({filter:'target',limit:(this.props.rowsPerPage ?? 40)}), '#036E78'),
       this.chip('Transactional only', st.filter==='transactional', ()=>this.setState({filter:'transactional',limit:(this.props.rowsPerPage ?? 40)}), '#6B615C'),
+      this.chip('Focus account', st.filter==='focus', ()=>this.setState({filter:'focus',limit:(this.props.rowsPerPage ?? 40)}), '#D46A1E'),
       this.chip('Escrow activity', st.filter==='escrow', ()=>this.setState({filter:'escrow',limit:(this.props.rowsPerPage ?? 40)}), '#90AD51'),
       this.chip('No contract', st.filter==='nocontract', ()=>this.setState({filter:'nocontract',limit:(this.props.rowsPerPage ?? 40)}), '#D46A1E'),
       this.chip('Unowned', st.filter==='unowned', ()=>this.setState({filter:'unowned',limit:(this.props.rowsPerPage ?? 40)}), '#6B615C'),
