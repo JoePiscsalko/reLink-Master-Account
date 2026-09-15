@@ -67,3 +67,20 @@ See the **Method & gaps** tab in the dashboard for the full reconciliation.
 
 ---
 reLink Medical®, reLink360®, and reLink Ready® are registered trademarks of reLink Medical LLC.
+
+## Open REQ tab
+
+Added from the Salesforce Requisition export. `data/reqs.json` is built by
+`build_reqs.py`:
+
+    python3 build_reqs.py /path/to/req-export.csv
+
+Notes on the source export:
+- It is **cp1252**, not UTF-8. A plain `read_csv` fails on a degree symbol.
+- Grain is Requisition Item; the script rolls it to Requisition.
+- `Account Name` and `Parent Account: Account Name` both describe the
+  **purchaser**. Nothing in this export links a Req to the 360 partner that
+  supplied the equipment, so Reqs do not roll up to the seller-side account book.
+- `rL Sales Team Estimated Margin` is populated on ~5% of line items.
+- There is no Status or date column, so "open" cannot be computed — the tab
+  shows whatever the saved Salesforce report returns.

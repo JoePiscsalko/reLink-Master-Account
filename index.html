@@ -199,6 +199,63 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ isReqs }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#036E78; margin-bottom:8px;">Requisitions · sell-side queue</div>
+        <h2 style="margin:0 0 6px; font-size:24px; font-weight:600; color:#2E2622;">Open REQ records</h2>
+        <p style="margin:0 0 18px; font-size:14px; color:#6B615C; max-width:760px; text-wrap:pretty;">Requisitions are a separate queue from third party stock — TPS is equipment coming in from a partner, a Req is equipment going out to a buyer. Both account fields in the source export describe the <em>purchaser</em>: the buying account, and that account's parent. The hospital that supplied the unit is not in this export, so nothing here is attributable to a 360 partner as seller. What it does show is which health systems are buying from reLink, and for how much.</p>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#E4DED0; border:1px solid #E4DED0; margin-bottom:16px;">
+          <sc-for list="{{ reqKpis }}" as="k" hint-placeholder-count="3">
+            <div style="background:#FFFFFF; padding:14px 16px;">
+              <div style="font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#6B615C; margin-bottom:5px;">{{ k.label }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:21px; color:#2E2622;">{{ k.value }}</div>
+              <div style="font-size:11px; color:#6B615C; margin-top:3px;">{{ k.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+          <sc-for list="{{ reqFilters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.go }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="border:1px solid #E4DED0; background:#FFFFFF; overflow-x:auto;">
+          <div style="min-width:1080px;">
+            <div style="display:grid; grid-template-columns:104px minmax(170px,1.35fr) minmax(140px,1.1fr) minmax(180px,1.4fr) 116px 52px 104px 104px; padding:11px 16px; background:#EFE9DA; border-bottom:1px solid #E4DED0; font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#4A3E3A;">
+              <div>Req #</div>
+              <div style="color:#036E78;">Buying parent</div>
+              <div>Buying account</div>
+              <div>Material</div>
+              <div>Coordinator</div>
+              <div style="text-align:right;">Items</div>
+              <div style="text-align:right;">Sale price</div>
+              <div style="text-align:right;">Est. margin</div>
+            </div>
+            <sc-for list="{{ reqRows }}" as="r" hint-placeholder-count="14">
+              <div style="display:grid; grid-template-columns:104px minmax(170px,1.35fr) minmax(140px,1.1fr) minmax(180px,1.4fr) 116px 52px 104px 104px; padding:11px 16px; border-bottom:1px solid #F2EEE5; font-size:13px; align-items:center;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2E2622;">{{ r.id }}</div>
+                <div>
+                  <div style="{{ r.acctStyle }}">{{ r.account }}</div>
+                  <div style="{{ r.kindStyle }}">{{ r.kind }}</div>
+                </div>
+                <div style="color:#6B615C; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:12px;">{{ r.buyer }}</div>
+                <div style="color:#4A3E3A; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:14px;">{{ r.material }}</div>
+                <div style="color:#6B615C; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.sell }}</div>
+                <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#4A3E3A;">{{ r.items }}</div>
+                <div style="{{ r.subStyle }}">{{ r.sub }}</div>
+                <div style="{{ r.marginStyle }}">{{ r.margin }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <sc-for list="{{ reqMoreBtn }}" as="b" hint-placeholder-count="1">
+            <button onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:12px; color:#6B615C; margin-top:12px; line-height:1.6; max-width:900px;">{{ reqNote }}</div>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ isRoles }}" hint-placeholder-val="{{ true }}">
       <div style="margin-top:28px;">
         <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6E8A36; margin-bottom:8px;">Coverage audit</div>
@@ -290,17 +347,17 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;initialTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Health systems&quot;,&quot;Coverage &amp; roles&quot;,&quot;Open TPS&quot;,&quot;Contract gap&quot;,&quot;Method &amp; gaps&quot;],&quot;default&quot;:&quot;Health systems&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;rowsPerPage&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;min&quot;:10,&quot;max&quot;:300,&quot;step&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;showZeroAccounts&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Defaults&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Health systems&quot;,&quot;Coverage &amp; roles&quot;,&quot;Open TPS&quot;,&quot;Open REQ&quot;,&quot;Contract gap&quot;,&quot;Method &amp; gaps&quot;],&quot;default&quot;:&quot;Health systems&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;rowsPerPage&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;min&quot;:10,&quot;max&quot;:300,&quot;step&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Defaults&quot;},&quot;showZeroAccounts&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Defaults&quot;}}">
 const MONO = "'IBM Plex Mono', monospace";
 const OPEN_ORDER = ['New','Info Request','In Market','Pending Offer','Pending Sale','On Hold'];
 
 class Component extends DCLogic {
   constructor(p){
     super(p);
-    const map = {'Health systems':'systems','Coverage & roles':'roles','Open TPS':'tps','Contract gap':'contracts','Method & gaps':'gaps'};
+    const map = {'Health systems':'systems','Coverage & roles':'roles','Open TPS':'tps','Open REQ':'reqs','Contract gap':'contracts','Method & gaps':'gaps'};
     this.state = { tab: map[p.initialTab] || 'systems', q:'', filter:'all',
       showZero: p.showZeroAccounts ?? true, open:{}, limit: p.rowsPerPage ?? 40,
-      tpsFilter:'all', allOpen:false, data:null, tps:null, contacts:{}, budgets:{byParent:{}}, err:null };
+      tpsFilter:'all', allOpen:false, data:null, tps:null, reqs:null, reqFilter:'health', reqLimit:40, contacts:{}, budgets:{byParent:{}}, err:null };
   }
 
   componentDidMount(){
@@ -308,8 +365,9 @@ class Component extends DCLogic {
       fetch('data/master.json').then(r=>r.json()),
       fetch('data/tps.json').then(r=>r.json()),
       fetch('data/roles-contacts.json').then(r=>r.json()).catch(()=>({byParent:{},byAccount:{}})),
-      fetch('data/budgets.json').then(r=>r.json()).catch(()=>({byParent:{}}))
-    ]).then(([data,tps,rc,bg])=>this.setState({data,tps,contacts:rc||{byParent:{},byAccount:{}},budgets:bg||{byParent:{}}}))
+      fetch('data/budgets.json').then(r=>r.json()).catch(()=>({byParent:{}})),
+      fetch('data/reqs.json').then(r=>r.json()).catch(()=>null)
+    ]).then(([data,tps,rc,bg,rq])=>this.setState({data,tps,reqs:rq,contacts:rc||{byParent:{},byAccount:{}},budgets:bg||{byParent:{}}}))
       .catch(e=>this.setState({err:String(e)}));
   }
 
@@ -499,10 +557,11 @@ class Component extends DCLogic {
       this.tabBtn('systems','Health systems'),
       this.tabBtn('roles','Coverage & roles'),
       this.tabBtn('tps','Open TPS'),
+      this.tabBtn('reqs','Open REQ'),
       this.tabBtn('contracts','Contract gap'),
       this.tabBtn('gaps','Method & gaps')
     ];
-    const base = { tabs, isSystems:st.tab==='systems', isContracts:st.tab==='contracts', isTps:st.tab==='tps', isRoles:st.tab==='roles', isGaps:st.tab==='gaps' };
+    const base = { tabs, isSystems:st.tab==='systems', isContracts:st.tab==='contracts', isTps:st.tab==='tps', isReqs:st.tab==='reqs', isRoles:st.tab==='roles', isGaps:st.tab==='gaps' };
 
     if(!d) return {...base, kpis:[{label:'Loading',value:'—',sub:st.err||'Reading source exports'}],
       rows:[], contractRows:[], tpsRows:[], tpsFilters:[], roleRows:[], sources:[], filters:[],
@@ -576,6 +635,66 @@ class Component extends DCLogic {
       acctStyle: `font-size:12.5px; padding-right:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:${r.account?'#036E78':'#C4BAB2'}; font-weight:${r.account?500:400}; font-style:${r.account?'normal':'italic'};`
     }));
 
+    // reqs
+    const rq = st.reqs;
+    let reqRows=[], reqFilters=[], reqKpis=[], reqMoreBtn=[], reqNote='Req export not loaded.';
+    if(rq){
+      const bc = rq.byBucket || {};
+      const mk = (id,label,n)=>this.chip(`${label} \u00b7 ${(n||0).toLocaleString('en-US')}`,
+        st.reqFilter===id, ()=>this.setState({reqFilter:id, reqLimit:40}),
+        id==='health' ? '#036E78' : '#6B615C');
+      reqFilters = [
+        mk('health','Health system buyer', bc.health),
+        mk('market','Marketplace', bc.market),
+        mk('none','Individual / no parent', bc.none),
+        mk('all','All requisitions', rq.reqs)
+      ];
+      let rl = rq.rows || [];
+      if(st.reqFilter!=='all') rl = rl.filter(r=>r.bucket===st.reqFilter);
+      const nItems = rl.reduce((a,r)=>a+(r.items||0),0);
+      const sum = rl.reduce((a,r)=>a+(r.sub||0),0);
+      const mgRows = rl.filter(r=>r.margin!=null);
+      const mg = mgRows.reduce((a,r)=>a+r.margin,0);
+      reqKpis = [
+        {label:'Requisitions', value:rl.length.toLocaleString('en-US'), sub:`${nItems.toLocaleString('en-US')} line items`},
+        {label:'Sale price', value:this.moneyK(sum), sub:'subtotal, this view'},
+        {label:'Est. margin', value: mgRows.length? this.moneyK(mg) : '\u2014',
+         sub:`${mgRows.length.toLocaleString('en-US')} of ${rl.length.toLocaleString('en-US')} reqs carry a value`}
+      ];
+      reqRows = rl.slice(0, st.reqLimit).map(r=>{
+        const isH = r.bucket==='health';
+        const acct = r.account || r.channel || null;
+        return {
+          id:r.id,
+          account: acct || 'Individual buyer',
+          acctStyle:`font-size:12.5px; padding-right:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:${isH?'#036E78':(acct?'#6B615C':'#C4BAB2')}; font-weight:${isH?500:400}; font-style:${acct?'normal':'italic'};`,
+          kind: isH ? (r.matched?'health system buyer':'buyer, unmatched parent') : (r.channel?'marketplace channel':'no parent account'),
+          kindStyle:`font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:${isH?(r.matched?'#6E8A36':'#D46A1E'):'#C4BAB2'};`,
+          buyer: r.buyer || '\u2014',
+          material: (r.material || '\u2014') + (r.moreMats? ` +${r.moreMats}` : ''),
+          sell: r.sell || r.acq || '\u2014',
+          items: (r.items||0).toLocaleString('en-US'),
+          sub: this.money(r.sub),
+          subStyle:`text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:${r.sub<0?'#D46A1E':'#2E2622'};`,
+          margin: r.margin!=null ? this.money(r.margin) : '\u2014',
+          marginStyle:`text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:${r.margin!=null?'#6E8A36':'#C4BAB2'};`
+        };
+      });
+      if(rl.length > st.reqLimit){
+        reqMoreBtn = [{
+          label:`Show ${Math.min(500, rl.length-st.reqLimit).toLocaleString('en-US')} more \u00b7 ${(rl.length-st.reqLimit).toLocaleString('en-US')} hidden`,
+          go:()=>this.setState({reqLimit: st.reqLimit+500}),
+          style:"padding:10px 18px; background:#FFFFFF; border:1px solid #E4DED0; font-family:'Source Sans 3',Arial,sans-serif; font-size:13px; color:#036E78; cursor:pointer;"
+        }];
+      }
+      const pct = rq.reqs ? ((bc.health||0)/rq.reqs*100) : 0;
+      reqNote = `${rq.itemRows.toLocaleString('en-US')} requisition items across ${rq.reqs.toLocaleString('en-US')} requisitions, ${this.moneyK(rq.subtotal)} in subtotal. `
+        + `Both account fields describe the purchaser. ${(bc.health||0).toLocaleString('en-US')} requisitions (${pct.toFixed(1)}%) were bought by an account whose parent is a health system \u2014 ${Object.keys(rq.byParent).length} distinct, ${Object.values(rq.byParent).filter(e=>e.matched).length} of which match a parent in the account master. `
+        + `${(bc.market||0).toLocaleString('en-US')} sold through Shopify or eBay and ${(bc.none||0).toLocaleString('en-US')} went to buyers with no parent account, mostly individuals. `
+        + `No field in this export links a requisition back to the 360 partner that supplied the equipment, so none of this rolls up to the seller side of the account book. `
+        + `Estimated margin is populated on ${rq.marginItems.toLocaleString('en-US')} of ${rq.itemRows.toLocaleString('en-US')} line items; ${rq.negativeItems.toLocaleString('en-US')} items are negative and ${rq.zeroItems.toLocaleString('en-US')} are zero. Source: ${rq.source}.`;
+    }
+
     // roles
     const roleRows = S.filter(s=>s.cur>0 || s.total!==0).slice(0,120).map(s=>{
       const acq = s.acqs.length? s.acqs.slice(0,2).join(', ') : 'reLink Mgt queue';
@@ -597,6 +716,7 @@ class Component extends DCLogic {
 
     return {
       ...base, kpis, rows, filters, contractRows, tpsRows, tpsFilters, roleRows,
+      reqRows, reqFilters, reqKpis, reqMoreBtn, reqNote,
       query: st.q,
       onQuery: e=>this.setState({q:e.target.value, limit:(this.props.rowsPerPage ?? 40)}),
       showZero: st.showZero,
