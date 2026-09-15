@@ -25,3 +25,9 @@
   from = "/report"
   to = "/report.html"
   status = 200
+
+# Shared-password gate. Runs before anything is served, including /data/*.json.
+# Set ACCESS_PASSWORD in Netlify → Site configuration → Environment variables.
+[[edge_functions]]
+  path = "/*"
+  function = "gate"

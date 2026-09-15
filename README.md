@@ -84,3 +84,26 @@ Notes on the source export:
 - `rL Sales Team Estimated Margin` is populated on ~5% of line items.
 - There is no Status or date column, so "open" cannot be computed — the tab
   shows whatever the saved Salesforce report returns.
+
+## Password protection
+
+The whole site sits behind a shared password enforced by a Netlify edge
+function (`netlify/edge-functions/gate.ts`), wired up in `netlify.toml`.
+
+Setup — one time, in the Netlify UI:
+
+1. Site configuration → Environment variables → Add a variable
+2. Key `ACCESS_PASSWORD`, value = the password. Scope: all deploy contexts.
+3. Redeploy.
+
+Behaviour:
+- The gate runs at the edge on `/*`, so `data/*.json` and `report.html` are
+  covered, not just the dashboard. There is no unauthenticated URL.
+- Correct password sets an `am_session` cookie — HttpOnly, Secure,
+  SameSite=Strict, 24h. The cookie holds a SHA-256 digest, never the password.
+- `/logout` clears the session.
+- If `ACCESS_PASSWORD` is unset the site returns 503. It never fails open.
+
+Limits: this is one shared password, not per-user accounts. Anyone with it
+sees everything, and there is no audit trail of who opened what. Rotate it
+when someone leaves.
