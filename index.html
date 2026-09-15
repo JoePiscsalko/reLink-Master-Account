@@ -450,7 +450,7 @@ class Component extends DCLogic {
     const f = this.state.filter;
     return d.systems.filter(s=>{
       if(f==='360' && s.cur===0) return false;
-      if(f==='partner' && s.cur===0 && s.tgt===0) return false;
+      if(f==='target' && !(s.tgt>0 && s.cur===0)) return false;
       if(f==='transactional' && !(s.tx>0 && s.cur===0 && s.tgt===0)) return false;
       if(f==='nocontract' && !s.noContract) return false;
       if(f==='unowned' && (s.owners.length>0)) return false;
@@ -606,7 +606,7 @@ class Component extends DCLogic {
     const filters = [
       this.chip('All', st.filter==='all', ()=>this.setState({filter:'all',limit:(this.props.rowsPerPage ?? 40)})),
       this.chip('Has 360 current', st.filter==='360', ()=>this.setState({filter:'360',limit:(this.props.rowsPerPage ?? 40)}), '#0598A6'),
-      this.chip('360 partner', st.filter==='partner', ()=>this.setState({filter:'partner',limit:(this.props.rowsPerPage ?? 40)}), '#036E78'),
+      this.chip('360 target', st.filter==='target', ()=>this.setState({filter:'target',limit:(this.props.rowsPerPage ?? 40)}), '#036E78'),
       this.chip('Transactional only', st.filter==='transactional', ()=>this.setState({filter:'transactional',limit:(this.props.rowsPerPage ?? 40)}), '#6B615C'),
       this.chip('Escrow activity', st.filter==='escrow', ()=>this.setState({filter:'escrow',limit:(this.props.rowsPerPage ?? 40)}), '#90AD51'),
       this.chip('No contract', st.filter==='nocontract', ()=>this.setState({filter:'nocontract',limit:(this.props.rowsPerPage ?? 40)}), '#D46A1E'),
